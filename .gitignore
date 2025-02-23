@@ -33,3 +33,5 @@ Thumbs.db       # Windows
 *.njsproj
 *.sln
 *.sw?
+
+rough.js
