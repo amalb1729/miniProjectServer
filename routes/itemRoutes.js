@@ -3,10 +3,11 @@ const router = express.Router();
 const Item = require("../models/item");
 
 // Fetch all items
-router.get("/items", async (req, res) => {
+router.get("/view", async (req, res) => {
     try {
         const items = await Item.find();
         res.json(items);
+        console.log(items)
     } catch (error) {
         res.status(500).json({ message: "Error fetching items" });
     }

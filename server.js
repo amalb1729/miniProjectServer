@@ -16,7 +16,7 @@ seedDatabase();
 
 // ✅ Use API Routes
 app.use("/auth", authRoutes);
-app.use("/api", itemRoutes);
-app.use("/api", orderRoutes); // ✅ Add order routes
+app.use("/api/items", itemRoutes);
+app.use("/api/orders", orderRoutes); // ✅ Add order routes
 
 app.listen(5000, () => console.log("Server running on port 5000"));

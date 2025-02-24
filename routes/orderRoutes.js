@@ -4,7 +4,7 @@ const Order = require("../models/Order");
 const Item = require("../models/item");
 
 // Place an order
-router.post("/orders", async (req, res) => {
+router.post("/place", async (req, res) => {
     const { userId, itemId, quantity } = req.body;
 
     try {
@@ -42,7 +42,7 @@ router.post("/orders", async (req, res) => {
 
 
 // Fetch all orders for a user
-router.get("/orders/:userId", async (req, res) => {
+router.get("/all/:userId", async (req, res) => {
     try {
         const orders = await Order.find({ userId: req.params.userId }).populate("itemId");
         res.json(orders);
@@ -50,5 +50,25 @@ router.get("/orders/:userId", async (req, res) => {
         res.status(500).json({ message: "Error fetching orders" });
     }
 });
+
+
+router.get("/view", async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .populate("userId", "name")  // Populate user and fetch only the name field
+            .populate("itemId", "name"); // Populate item and fetch only the name field
+        
+         if (!Array.isArray(orders)) {
+                return res.status(500).json({ message: "Data format incorrect" });
+            }
+            
+        console.log(orders); // Log the populated data
+        res.json(orders);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching orders" });
+    }
+});
+
+
 
 module.exports = router;
