@@ -11,12 +11,21 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+
+const middle=(req,res,next)=>{
+    console.log(req.body);
+    next();
+}
+
+//seedDatabase();
 connectDB();
-seedDatabase();
+
 
 // ✅ Use API Routes
+app.use(middle)
 app.use("/auth", authRoutes);
-app.use("/api", itemRoutes);
-app.use("/api", orderRoutes); // ✅ Add order routes
+
+app.use("/item", itemRoutes);
+app.use("/order", orderRoutes); // ✅ Add order routes
 
 app.listen(5000, () => console.log("Server running on port 5000"));
