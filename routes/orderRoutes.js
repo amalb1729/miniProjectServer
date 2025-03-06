@@ -1,10 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const Order = require("../models/Order");
+const {Order} = require("../models/Order");
 const Item = require("../models/item");
+const User =require("../models/user")
 
 // Place an order
-router.post("/place", async (req, res) => {
+router.post("/order", async (req, res) => {
     const { userId, itemId, quantity } = req.body;
 
     try {
@@ -18,15 +19,30 @@ router.post("/place", async (req, res) => {
         }
 
         // ✅ Check if an order already exists for this user and item
-        let existingOrder = await Order.findOne({ userId, itemId });
+        let existingOrder = await Order.findOne({ userId});
 
         if (existingOrder) {
             // ✅ Update existing order quantity
-            existingOrder.quantity += quantity;
-            await existingOrder.save();
+            let order=existingOrder.orderedItems.find((element)=>element.itemId==itemId);
+            if(order){
+                    existingOrder.orderedItems.forEach(element => {
+                        if(element.itemId==itemId){
+                            element.quantity+=quantity;
+                        }
+                    });
+                    existingOrder.save();
+            }
+            else{
+                console.log("not found")
+                existingOrder.orderedItems.push({itemId, quantity})
+                existingOrder.save();
+            }
+            //await existingOrder.save();
         } else {
             // ✅ Create a new order if none exists
-            existingOrder = new Order({ userId, itemId, quantity });
+            console.log("no order found")
+            let orderedItems=[{itemId, quantity}];
+            existingOrder = new Order({ userId,orderedItems });
             await existingOrder.save();
         }
 
@@ -36,39 +52,21 @@ router.post("/place", async (req, res) => {
 
         res.status(201).json({ message: "Order placed successfully", order: existingOrder });
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: "Error placing order", error });
     }
 });
 
 
 // Fetch all orders for a user
-router.get("/all/:userId", async (req, res) => {
+router.get("/orders", async (req, res) => {
     try {
-        const orders = await Order.find({ userId: req.params.userId }).populate("itemId");
+        const orders = await Order.find().populate({path:"userId",select:["username"]}).populate({path:"orderedItems.itemId",select:["name","price"]});
         res.json(orders);
     } catch (error) {
         res.status(500).json({ message: "Error fetching orders" });
+        console.log(error)
     }
 });
-
-
-router.get("/view", async (req, res) => {
-    try {
-        const orders = await Order.find()
-            .populate("userId", "name")  // Populate user and fetch only the name field
-            .populate("itemId", "name"); // Populate item and fetch only the name field
-        
-         if (!Array.isArray(orders)) {
-                return res.status(500).json({ message: "Data format incorrect" });
-            }
-            
-        console.log(orders); // Log the populated data
-        res.json(orders);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching orders" });
-    }
-});
-
-
 
 module.exports = router;
