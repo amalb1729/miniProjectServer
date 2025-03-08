@@ -3,7 +3,7 @@ const router = express.Router();
 const Item = require("../models/item");
 
 // Fetch all items
-router.get("/view", async (req, res) => {
+router.get("/items", async (req, res) => {
     try {
         const items = await Item.find({},"_id name stock price");
         res.json(items);
