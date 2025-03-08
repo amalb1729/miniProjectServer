@@ -17,7 +17,8 @@ router.get("/items", async (req, res) => {
 router.delete("/remove",async(req,res)=>{
     try{
         const {itemId}=req.body
-        await Item.findByIdAndDelete(itemId)
+        const item=await Item.findByIdAndDelete(itemId)
+        console.log(item,"hi")
         res.json({message:"item removed succesfully"})
     }
     catch(error){
