@@ -33,7 +33,6 @@ router.put("/update",async (req,res)=>{
         const updateItem=req.body
         
         const item=await Item.findByIdAndUpdate(updateItem._id,updateItem)
-        console.log(thing)
         res.json({message:"successfully updated item"})
         
     }catch(error){
@@ -46,10 +45,15 @@ router.put("/add",async (req,res)=>{
 
         try{
         const addItem=req.body
-        console.log(Item)
-        const data=await Item.create(addItem)
-        console.log(data)
-        res.json({_id:data._id,message:"successfully added item"})
+        const check=await Item.findOne({name:addItem.name})
+        if(check){
+            res.status(500).json({message:"item already exists"})
+        }
+        else{
+            const data=await Item.create(addItem)
+            res.json({_id:data._id,message:"successfully added item"})
+        }
+        
         }catch(error){
             console.log(error);
             res.status(500).json({ message: "Error adding item" });

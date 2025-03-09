@@ -73,8 +73,8 @@ router.post("/order", async (req, res) => {
 // Fetch all orders for admin
 router.get("/orders", async (req, res) => {
     try {
-        const pendingOrders=await Order.find({status:"Pending"}).populate({path:"userId",select:["username"]})
-        const completedOrders=await Order.find({status:{ $in: ["Completed", "Cancelled"] }}).populate({path:"userId",select:["username"]});
+        const pendingOrders=await Order.find({status:"Pending"}).sort({ _id: -1 }).populate({path:"userId",select:["username"]});
+        const completedOrders=await Order.find({status:{ $in: ["Completed", "Cancelled"] }}).sort({ _id: -1 }).populate({path:"userId",select:["username"]});
         const order={pendingOrders,completedOrders}
         res.json(order);
 
@@ -88,9 +88,9 @@ router.get("/orders/:id", async (req, res) => {
     const {id}=req.params
     const userId=new mongoose.Types.ObjectId(id)
     try {
-        const pendingOrders=await Order.find({ userId,status:"Pending"});
+        const pendingOrders=await Order.find({ userId,status:"Pending"}).sort({ _id: -1 });
         console.log(pendingOrders)
-        const completedOrders=await Order.find({ userId,status:{ $in: ["Completed", "Cancelled"] }});
+        const completedOrders=await Order.find({ userId,status:{ $in: ["Completed", "Cancelled"] }}).sort({ _id: -1 });
         console.log(completedOrders)
         const order={pendingOrders,completedOrders}
         res.json(order);
