@@ -18,6 +18,7 @@ router.post("/order", async (req, res) => {
         const itemName=item.name
         const itemPrice=item.price
         const itemQuantity=quantity
+
         console.log(itemId,itemName,itemPrice,itemQuantity)
 
         if (item.stock < quantity) {
@@ -25,7 +26,8 @@ router.post("/order", async (req, res) => {
         }
 
         // ✅ Check if an order already exists for this user and item
-        let existingOrder = await Order.findOne({ userId,status:"Pending"});
+        let existingOrder = await Order.findOne({ userId,status:"Pending"}).sort({ _id: -1 });//trying find to order matching userid and status as pending
+        //by putting sort({_id:-1}) it searches from last inserted document, putting 1 will search from first inserted document
 
         if (existingOrder) {
             // ✅ Update existing order quantity
@@ -71,8 +73,11 @@ router.post("/order", async (req, res) => {
 // Fetch all orders for admin
 router.get("/orders", async (req, res) => {
     try {
-        const orders = await Order.find().populate({path:"userId",select:["username"]})
-        res.json(orders);
+        const pendingOrders=await Order.find({status:"Pending"}).populate({path:"userId",select:["username"]})
+        const completedOrders=await Order.find({status:{ $in: ["Completed", "Cancelled"] }}).populate({path:"userId",select:["username"]});
+        const order={pendingOrders,completedOrders}
+        res.json(order);
+
     } catch (error) {
         res.status(500).json({ message: "Error fetching orders" });
         console.log(error)
@@ -83,7 +88,7 @@ router.get("/orders/:id", async (req, res) => {
     const {id}=req.params
     const userId=new mongoose.Types.ObjectId(id)
     try {
-        const pendingOrders=await Order.findOne({ userId,status:"Pending"});
+        const pendingOrders=await Order.find({ userId,status:"Pending"});
         console.log(pendingOrders)
         const completedOrders=await Order.find({ userId,status:{ $in: ["Completed", "Cancelled"] }});
         console.log(completedOrders)
@@ -95,5 +100,25 @@ router.get("/orders/:id", async (req, res) => {
         console.log(error)
     }
 });
+
+router.put("/orders/change",async (req,res)=>{
+
+    const {id,status}=req.body;
+    console.log("hi")
+    try {
+        const order=await Order.findByIdAndUpdate(id,{status});
+
+        console.log("qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq")
+        const neworder=await Order.findById(id);
+        console.log(neworder)
+
+        res.json(order);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching orders" });
+        console.log(error)
+    }
+
+
+})
 
 module.exports = router;
