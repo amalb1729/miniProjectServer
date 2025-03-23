@@ -4,7 +4,6 @@ const viewAll= async (req, res) => {
     try {
         const items = await Item.find({},"_id name stock price");
         res.json(items);
-        console.log(items)
     } catch (error) {
         res.status(500).json({ message: "Error fetching items" });
     }
