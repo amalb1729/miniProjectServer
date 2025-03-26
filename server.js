@@ -10,7 +10,9 @@ const orderRoutes = require("./routes/orderRoutes");
 const { seedDatabase } = require("./seed");
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+    origin:"*"
+}));
 
 
 const middle=(req,res,next)=>{
@@ -36,4 +38,4 @@ app.use("/auth", authRoutes);
 app.use("/item", itemRoutes);
 app.use("/order", orderRoutes); // ✅ Add order routes
 
-app.listen(5000,'192.168.192.158', () => console.log("Server running on port 5000"));
+app.listen(5000,'0.0.0.0', () => console.log("Server running on port 5000"));
