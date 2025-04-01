@@ -7,7 +7,7 @@ const mongoose=require("mongoose");
 
 const getPendingOrders=async (req, res) => {
     try {
-        const pendingOrders=await Order.find({status:"Pending"}).sort({ _id: -1 }).populate({path:"userId",select:["username"]});
+        const pendingOrders=await Order.find({status:"Pending"}).sort({ _id: -1 }).populate({path:"userId",select:["username","department","semester"]});
         res.json(pendingOrders);
 
     } catch (error) {
@@ -17,7 +17,7 @@ const getPendingOrders=async (req, res) => {
 }
 const getCompletedOrders=async (req, res) => {
     try {
-        const completedOrders=await Order.find({status:{ $in: ["Completed", "Cancelled"] }}).sort({ _id: -1 }).populate({path:"userId",select:["username"]});
+        const completedOrders=await Order.find({status:{ $in: ["Completed", "Cancelled"] }}).sort({ _id: -1 }).populate({path:"userId",select:["username","department","semester"]});
         res.json(completedOrders);
 
     } catch (error) {
