@@ -5,12 +5,20 @@ const User =require("../models/user")
 const mongoose=require("mongoose");
 
 
-const allOrders=async (req, res) => {
+const getPendingOrders=async (req, res) => {
     try {
         const pendingOrders=await Order.find({status:"Pending"}).sort({ _id: -1 }).populate({path:"userId",select:["username"]});
+        res.json(pendingOrders);
+
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching orders" });
+        console.log(error)
+    }
+}
+const getCompletedOrders=async (req, res) => {
+    try {
         const completedOrders=await Order.find({status:{ $in: ["Completed", "Cancelled"] }}).sort({ _id: -1 }).populate({path:"userId",select:["username"]});
-        const order={pendingOrders,completedOrders}
-        res.json(order);
+        res.json(completedOrders);
 
     } catch (error) {
         res.status(500).json({ message: "Error fetching orders" });
@@ -118,4 +126,4 @@ const changeOrder=async (req,res)=>{
 
 
 }
-module.exports={allOrders,addOrder,userOrder,changeOrder}
+module.exports={getCompletedOrders,getPendingOrders,addOrder,userOrder,changeOrder}
