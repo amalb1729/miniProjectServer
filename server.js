@@ -6,7 +6,7 @@ const connectDB = require("./connect");
 const authRoutes = require("./routes/authRoutes");
 const itemRoutes = require("./routes/itemRoutes");
 const orderRoutes = require("./routes/orderRoutes");
-
+const userRoutes = require("./routes/userRoutes");
 const { seedDatabase } = require("./seed");
 const app = express();
 app.use(express.json());
@@ -36,6 +36,7 @@ app.use("/images",express.static(path.join(__dirname,"public/images")))
 app.use("/auth", authRoutes);
 
 app.use("/item", itemRoutes);
-app.use("/order", orderRoutes); // ✅ Add order routes
+app.use("/order", orderRoutes);
+app.use("/student", userRoutes); // ✅ Add order routes
 
 app.listen(5000,'0.0.0.0', () => console.log("Server running on port 5000"));
