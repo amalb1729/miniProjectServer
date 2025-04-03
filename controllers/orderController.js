@@ -81,6 +81,7 @@ const toOrder = async (req, res) => {
     const { id } = req.params; // Cart ID
     console.log("Processing order for cart:", id);
 
+    let successfullyOrderedItems = [];
     let partiallyAvailableItems = [];
     let outOfStockItems = [];
     let notFoundItems = [];
@@ -101,7 +102,7 @@ const toOrder = async (req, res) => {
             }
 
             if (item.stock >= element.itemQuantity) {
-                // ✅ Fully available: Reduce stock and remove from cart
+                // ✅ Fully available: Reduce stock, remove from cart, and add to order
                 await Item.updateOne(
                     { _id: element.itemId },
                     { $inc: { stock: -element.itemQuantity } }
@@ -112,10 +113,17 @@ const toOrder = async (req, res) => {
                     { $pull: { userCart: { itemId: element.itemId } } }
                 );
 
+                successfullyOrderedItems.push({
+                    itemId: item._id,
+                    itemName: item.name,
+                    itemPrice: item.price,
+                    itemQuantity: element.itemQuantity
+                });
+
                 console.log(`✅ Item "${item.name}" fully processed and removed from cart.`);
 
             } else if (item.stock > 0) {
-                // ⚠️ Partially available: Adjust quantity in cart
+                // ⚠️ Partially available: Adjust quantity in cart and add available quantity to order
                 const updatedQuantity = item.stock;
 
                 await Item.updateOne(
@@ -128,6 +136,13 @@ const toOrder = async (req, res) => {
                     { $set: { "userCart.$.itemQuantity": updatedQuantity } }
                 );
 
+                successfullyOrderedItems.push({
+                    itemId: item._id,
+                    itemName: item.name,
+                    itemPrice: item.price,
+                    itemQuantity: updatedQuantity
+                });
+
                 partiallyAvailableItems.push({ itemName: element.itemName, newQuantity: updatedQuantity });
                 console.log(`⚠️ Item "${item.name}" updated to available quantity: ${updatedQuantity}`);
 
@@ -136,6 +151,17 @@ const toOrder = async (req, res) => {
                 outOfStockItems.push(element.itemName);
                 console.log(`❌ Item "${item.name}" is out of stock and remains in cart.`);
             }
+        }
+
+        // If some items were successfully ordered, create an order
+        let orderCreated = null;
+        if (successfullyOrderedItems.length > 0) {
+            orderCreated = await Order.create({
+                userId: cart.userId,
+                orderedItems: successfullyOrderedItems,
+                status: "Pending",
+            });
+            console.log("🛒 Order created with pending status:", orderCreated._id);
         }
 
         // Fetch updated cart
@@ -154,17 +180,18 @@ const toOrder = async (req, res) => {
             if (outOfStockItems.length > 0) failureMessage += `❌ Out of stock: ${outOfStockItems.join(", ")}. `;
             if (notFoundItems.length > 0) failureMessage += `🔍 Not found: ${notFoundItems.join(", ")}. `;
 
-            return res.status(206).json({ message: failureMessage, updatedCart });
+            return res.status(206).json({ message: failureMessage, updatedCart, order: orderCreated });
         }
 
         // If no failures, return success message
-        res.status(201).json({ message: "✅ Order processed successfully!", updatedCart });
+        res.status(201).json({ message: "✅ Order processed successfully!", order: orderCreated });
 
     } catch (error) {
         console.error("❌ Error placing order:", error);
         res.status(500).json({ message: "Error placing order", error });
     }
 };
+
 
 const userOrder=async (req, res) => {
     try {
