@@ -9,6 +9,16 @@ const viewAll= async (req, res) => {
     }
 }
 
+const getItemStock=async (req, res) => {
+    try {
+        const stock = await Item.find({}, { _id: 1, stock: 1 });
+        res.json(stock);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching stock data" });
+        console.log(error);
+    }
+}
+
 const removeItem=async(req,res)=>{
     try{
         const {itemId}=req.body
@@ -26,9 +36,11 @@ const removeItem=async(req,res)=>{
 const updateItem=async (req,res)=>{
     try{
         const updateItem=req.body
-        
         const item=await Item.findByIdAndUpdate(updateItem._id,updateItem)
-        res.json({message:"successfully updated item"})
+        if(item)
+            res.json({message:"successfully updated item"})
+        else
+            res.json({message:"item not found"})
         
     }catch(error){
         console.log(error);
@@ -55,4 +67,4 @@ const addItem=async (req,res)=>{
     }
 }
 
-module.exports={viewAll,removeItem,updateItem,addItem}
+module.exports={getItemStock,viewAll,removeItem,updateItem,addItem}

@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const {viewAll,removeItem,updateItem,addItem}=require('../controllers/itemController')
+const {viewAll,removeItem,updateItem,addItem,getItemStock}=require('../controllers/itemController')
 const Item = require("../models/item");
 
 
@@ -12,5 +12,7 @@ router.delete("/remove",removeItem)
 router.put("/update",updateItem)
 
 router.put("/add",addItem)
+
+router.get("/stock",getItemStock);
 
 module.exports = router;

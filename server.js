@@ -26,7 +26,7 @@ connectDB();
 
 
 // ✅ Use API Routes
-app.use(middle)
+//app.use(middle)
 app.use((req,res,next)=>{
     console.log(`${req.method} ${req.path} from ${req.ip}`);
     next();
