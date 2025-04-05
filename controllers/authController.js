@@ -68,7 +68,8 @@ const login = async (req, res) => {
                 name: user.name,
                 department: user.department,
                 semester: user.semester,
-                role:user.role
+                role:user.role,
+                url:user.pictureURL
             }
         });
         console.log("after")

@@ -2,10 +2,12 @@ const express = require("express");
 
 const router = express.Router();
 
-const {getAllStudents,getMyInfo, uploadProfile}=require('../controllers/userController')
+const {getAllStudents,getMyInfo, uploadProfile,uploadVerification}=require('../controllers/userController')
 
 router.get("/all",getAllStudents);
-router.get("/:id",getMyInfo)
+router.get("/myInfo/:id",getMyInfo)
 router.post("/upload/:id",uploadProfile)
+
+router.get("/uploadCheck",uploadVerification)
 
 module.exports = router;
