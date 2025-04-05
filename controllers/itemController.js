@@ -36,6 +36,7 @@ const removeItem=async(req,res)=>{
 const updateItem=async (req,res)=>{
     try{
         const updateItem=req.body
+
         const item=await Item.findByIdAndUpdate(updateItem._id,updateItem)
         if(item)
             res.json({message:"successfully updated item"})
@@ -52,8 +53,9 @@ const addItem=async (req,res)=>{
 
     try{
     const addItem=req.body
-    const check=await Item.findOne({name:addItem.name})
-    if(check){
+    addItem.name=addItem.name.trim().replace(/\s+/g, ' ')//for removeing excessive whitespace
+    const check=await Item.findOne({name:{ $regex : new RegExp(addItem.name, "i") }})//for case insensitive check
+    if(check && check?.name.toLowerCase()==addItem.name.toLowerCase()){
         res.status(500).json({message:"item already exists"})
     }
     else{

@@ -33,6 +33,7 @@ app.use((req,res,next)=>{
 })
 
 app.use("/images",express.static(path.join(__dirname,"public/images")))
+app.use("/user",express.static(path.join(__dirname,"public/user")))
 app.use("/auth", authRoutes);
 
 app.use("/item", itemRoutes);
