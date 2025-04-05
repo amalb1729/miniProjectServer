@@ -7,7 +7,6 @@ const {getAllStudents,getMyInfo, uploadProfile,uploadVerification}=require('../c
 router.get("/all",getAllStudents);
 router.get("/myInfo/:id",getMyInfo)
 router.post("/upload/:id",uploadProfile)
-
 router.get("/uploadCheck",uploadVerification)
 
 module.exports = router;

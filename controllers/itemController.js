@@ -1,8 +1,22 @@
 const Item = require("../models/item");
 
+
+const ImageKit = require('imagekit');
+
+const imagekit = new ImageKit({
+  urlEndpoint: process.env.PUBLIC_URL_ENDPOINT,
+  publicKey: process.env.PUBLIC_PUBLIC_KEY,
+  privateKey: process.env.PRIVATE_KEY
+});
+
+const uploadVerification= (req, res)=> {
+    var result = imagekit.getAuthenticationParameters();
+    res.send(result);
+  };
+
 const viewAll= async (req, res) => {
     try {
-        const items = await Item.find({},"_id name stock price");
+        const items = await Item.find({},"_id name stock price pictureURL");
         res.json(items);
     } catch (error) {
         res.status(500).json({ message: "Error fetching items" });
@@ -69,4 +83,21 @@ const addItem=async (req,res)=>{
     }
 }
 
-module.exports={getItemStock,viewAll,removeItem,updateItem,addItem}
+
+const uploadItem=async(req,res)=>{
+    try {
+        const {id}=req.params;
+        const {url}=req.body;
+        const item = await Item.findByIdAndUpdate(id,{pictureURL:url});
+        res.json({
+            url:url
+    });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Error fetching details" });
+    }
+  };
+
+
+
+module.exports={getItemStock,viewAll,removeItem,updateItem,addItem,uploadVerification,uploadItem}

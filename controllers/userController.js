@@ -12,9 +12,10 @@ const imagekit = new ImageKit({
 
 const getAllStudents= async (req, res) => {
     try {
-        const users = await user.find({},"_id name department semester");
+        const users = await User.find({},"_id name department semester pictureURL");
         res.json(users);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ message: "Error fetching details" });
     }
 }
@@ -29,7 +30,7 @@ const getMyInfo= async (req, res) => {
     try {
         const {id}=req.params;
         //const Id=new mongoose.Types.ObjectId(id)
-        const users = await user.findById(id);
+        const users = await User.findById(id);
         res.json(users);
     } catch (error) {
         console.log(error)
@@ -49,8 +50,6 @@ const uploadProfile=async(req,res)=>{
         console.log(error)
         res.status(500).json({ message: "Error fetching details" });
     }
-
-
   };
 
 module.exports={getAllStudents,getMyInfo,uploadProfile,uploadVerification}
