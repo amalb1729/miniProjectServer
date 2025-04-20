@@ -68,9 +68,21 @@ const login = async (req, res) => {
         };
         // Generate tokens
         const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-        const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+        const refreshingToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
         // Store refresh token in DB
-        await Token.create({ token: refreshToken, userId: user._id });
+        let refreshToken="";
+        const existingUser = await Token.findOne({ userId:user._id });
+
+        if(!existingUser){
+        console.log("user not found");
+        refreshToken=refreshingToken;
+        await Token.create({ token: refreshToken, userId:user._id });
+        }
+        else{
+            refreshToken=existingUser.token;
+        }
+
+
         // Send refresh token as HTTP-only cookie
         res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
@@ -94,6 +106,7 @@ const login = async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Error logging in", error });
+        console.log(error)
     }
 };
 
@@ -124,7 +137,9 @@ const logout = async (req, res) => {
         const cookies=req.cookies;
         const refreshToken = cookies.refreshToken;
         if (refreshToken) {
-            await Token.deleteOne({ token: refreshToken });
+            const del=await Token.deleteOne({ token: refreshToken });
+            console.log(del);
+            console.log(refreshToken);
             res.clearCookie('refreshToken');
         }
         res.sendStatus(204);//no content
@@ -157,10 +172,19 @@ const adminLogin = async (req, res) => {
         
         // Generate tokens
         const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
-        const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
-        
+        const refreshingToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
         // Store refresh token in DB
-        await Token.create({ token: refreshToken, userId: user._id });
+        let refreshToken="";
+        const existingUser = await Token.findOne({ userId:user._id });
+
+        if(!existingUser){
+        console.log("user not found");
+        refreshToken=refreshingToken;
+        await Token.create({ token: refreshToken, userId:user._id });
+        }
+        else{
+            refreshToken=existingUser.token;
+        }
         
         // Send refresh token as HTTP-only cookie
         res.cookie('refreshToken', refreshToken, {

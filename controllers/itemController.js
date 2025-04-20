@@ -35,8 +35,8 @@ const getItemStock=async (req, res) => {
 
 const removeItem=async(req,res)=>{
     try{
-        const {itemId}=req.body
-        const item=await Item.findByIdAndDelete(itemId)
+        const {id}=req.body
+        const item=await Item.findByIdAndDelete(id)
         console.log(item,"hi")
         res.json({message:"item removed succesfully"})
     }
