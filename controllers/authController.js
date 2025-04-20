@@ -133,5 +133,58 @@ const logout = async (req, res) => {
     }
 };
 
-module.exports = { register, login, refreshToken, logout };
+// ✅ Admin Login Controller
+const adminLogin = async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const user = await User.findOne({ username: username.toLowerCase() }); 
+        
+        // Check if user exists and password matches
+        const isMatch = user ? await bcrypt.compare(password, user.password) : false;
+        if (!isMatch) return res.status(400).json({ message: "Invalid username or password" });
+        
+        // Check if user has admin role
+        if (user.role !== 'admin') {
+            return res.status(403).json({ message: "Access denied. Admin privileges required." });
+        }
+
+        // Payload for JWT
+        const payload = {
+            userId: user._id,
+            username: user.username,
+            role: user.role
+        };
+        
+        // Generate tokens
+        const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+        
+        // Store refresh token in DB
+        await Token.create({ token: refreshToken, userId: user._id });
+        
+        // Send refresh token as HTTP-only cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+        
+        // Send access token and user info
+        res.json({ 
+            message: "Admin login successful", 
+            accessToken,
+            user: {
+                userId: user._id,
+                username: user.username,
+                name: user.name,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ message: "Error logging in", error: error.message });
+    }
+};
+
+module.exports = { register, login, refreshToken, logout, adminLogin };
 

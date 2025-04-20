@@ -1,11 +1,14 @@
 const express = require("express");
-const { register, login, refreshToken, logout } = require("../controllers/authController");
+const { register, login, refreshToken, logout, adminLogin } = require("../controllers/authController");
 
 const router = express.Router();
 const verifyJWT = require("../middleware/verifyJWT");
 router.post("/register", register);
 
 router.post("/login", login);
+
+// Admin-specific login route
+router.post("/admin/login", adminLogin);
 
 router.post("/token", refreshToken);
 router.post("/logout", logout);

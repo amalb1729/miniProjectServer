@@ -6,6 +6,7 @@ const {getCompletedOrders,toOrder,saveCart,fetchUserCart,getPendingOrders,addToC
 
 
 const verifyJWT = require("../middleware/verifyJWT");
+const verifyAdmin = require("../middleware/verifyAdmin");
 
 router.use(verifyJWT);
 
@@ -15,15 +16,15 @@ router.post("/toCart",addToCart);
 
 router.post("/saveCart/:id",saveCart);
 
-// Fetch all orders for admin
-router.get("/pendingOrders",getPendingOrders );
-router.get("/completedOrders",getCompletedOrders );
+// Fetch all orders for admin - requires admin role
+router.get("/pendingOrders", verifyAdmin, getPendingOrders);
+router.get("/completedOrders", verifyAdmin, getCompletedOrders);
 
 //fetch ordder of userid
 router.get("/orders/:id", userOrder);
 router.get("/cart/:id",fetchUserCart)
 
-//for changing status
-router.put("/orders/change",changeOrder)
+//for changing status - requires admin role
+router.put("/orders/change", verifyAdmin, changeOrder)
 
 module.exports = router;
