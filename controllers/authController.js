@@ -50,33 +50,88 @@ const register = async (req, res) => {
 };
 
 // ✅ User Login Controller
+const jwt = require('jsonwebtoken');
+const Token = require('../models/token');
+
 const login = async (req, res) => {
     try {
         const { username, password } = req.body;
-
         const user = await User.findOne({ username: username.toLowerCase() }); 
         const isMatch = user ? await bcrypt.compare(password, user.password) : false;
         if (!isMatch) return res.status(400).json({ message: "Invalid username or password" });
 
-        console.log("before")
-
+        // Payload for JWT
+        const payload = {
+            userId: user._id,
+            username: user.username,
+            role: user.role
+        };
+        // Generate tokens
+        const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+        const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' });
+        // Store refresh token in DB
+        await Token.create({ token: refreshToken, userId: user._id });
+        // Send refresh token as HTTP-only cookie
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+        // Send access token and user info
         res.json({ 
             message: "Login successful", 
+            accessToken,
             user: {
                 userId: user._id,
                 username: user.username,
                 name: user.name,
                 department: user.department,
                 semester: user.semester,
-                role:user.role,
-                url:user.pictureURL
+                role: user.role,
+                url: user.pictureURL
             }
         });
-        console.log("after")
     } catch (error) {
         res.status(500).json({ message: "Error logging in", error });
     }
 };
 
-// ✅ Export Controllers
-module.exports = { register, login };
+// ✅ Refresh Token Endpoint
+const refreshToken = async (req, res) => {
+    try {
+        const cookies=req.cookies;
+        if(!cookies?.refreshToken) return res.sendStatus(401);
+        const refreshToken = cookies.refreshToken;
+        const storedToken = await Token.findOne({ token: refreshToken });
+        const user= await User.findById(storedToken.userId);
+        if (!storedToken) return res.sendStatus(403);
+        jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+            if (err || user._id!=decoded.userId) return res.sendStatus(403);
+            const payload = { userId: user.userId, username: user.username, role: user.role };
+            const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15m' });
+            res.json({ accessToken });
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+
+// ✅ Logout Endpoint
+const logout = async (req, res) => {
+    try {
+        const cookies=req.cookies;
+        const refreshToken = cookies.refreshToken;
+        if (refreshToken) {
+            await Token.deleteOne({ token: refreshToken });
+            res.clearCookie('refreshToken');
+        }
+        res.sendStatus(204);//no content
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
+    }
+};
+
+module.exports = { register, login, refreshToken, logout };
+
