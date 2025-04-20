@@ -4,6 +4,11 @@ const router = express.Router();
 
 const {getCompletedOrders,toOrder,saveCart,fetchUserCart,getPendingOrders,addToCart,userOrder,changeOrder}=require('../controllers/orderController')
 
+
+const verifyJWT = require("../middleware/verifyJWT");
+
+router.use(verifyJWT);
+
 // Place an order
 router.post("/toOrder/:id",toOrder);
 router.post("/toCart",addToCart);

@@ -29,7 +29,7 @@ connectDB();
 // ✅ Use API Routes
 //app.use(middle)
 app.use((req,res,next)=>{
-    console.log(`${req.method} ${req.path} from ${req.ip}`);
+    console.log(`${req.method} ${req.path} from ${req.ip} with ${req.headers}`);
     next();
 })
 app.use(cookieParser());

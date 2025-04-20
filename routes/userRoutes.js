@@ -4,6 +4,9 @@ const router = express.Router();
 
 const {getAllStudents,getMyInfo, uploadProfile,uploadVerification}=require('../controllers/userController')
 
+const verifyJWT = require("../middleware/verifyJWT");
+router.use(verifyJWT);
+
 router.get("/all",getAllStudents);
 router.get("/myInfo/:id",getMyInfo)
 router.post("/upload/:id",uploadProfile)
