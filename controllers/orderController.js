@@ -267,4 +267,38 @@ const changeOrder=async (req,res)=>{
 
 
 }
-module.exports={saveCart,fetchUserCart,getCompletedOrders,getPendingOrders,addToCart,userOrder,changeOrder,toOrder}
+
+const cancelAllPendingOrders = async (req, res) => {
+    try {
+        // Find all pending orders
+        const pendingOrders = await Order.find({ status: "Pending" });
+        
+        // For each pending order, restore stock and update status
+        for (const order of pendingOrders) {
+            // Restore stock for each item in the order
+            for (const item of order.orderedItems) {
+                await Item.updateOne(
+                    { _id: item.itemId },
+                    { $inc: { stock: item.itemQuantity } }
+                );
+                console.log(`Restored ${item.itemQuantity} units of ${item.itemName} to stock due to bulk cancellation`);
+            }
+        }
+        
+        // Update all pending orders to cancelled status
+        const result = await Order.updateMany(
+            { status: "Pending" },
+            { status: "Cancelled" }
+        );
+        
+        res.json({ 
+            message: `Successfully cancelled ${result.modifiedCount} pending orders`,
+            modifiedCount: result.modifiedCount
+        });
+    } catch (error) {
+        console.error("Error cancelling pending orders:", error);
+        res.status(500).json({ message: "Error cancelling pending orders" });
+    }
+}
+
+module.exports={saveCart,fetchUserCart,getCompletedOrders,getPendingOrders,addToCart,userOrder,changeOrder,toOrder,cancelAllPendingOrders}
