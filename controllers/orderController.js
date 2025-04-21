@@ -242,6 +242,19 @@ const changeOrder=async (req,res)=>{
 
     const {id,status}=req.body;
     try {
+        // Get the order before updating to check current status
+        const currentOrder = await Order.findById(id);
+        
+        // If order is being cancelled, restore stock
+        if (status === "Cancelled" && currentOrder.status !== "Cancelled") {
+            for (const item of currentOrder.orderedItems) {
+                await Item.updateOne(
+                    { _id: item.itemId },
+                    { $inc: { stock: item.itemQuantity } }
+                );
+            }
+        }
+        
         const order=await Order.findByIdAndUpdate(id,{status});
         const neworder=await Order.findById(id);
         console.log(neworder)
