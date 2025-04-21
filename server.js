@@ -10,6 +10,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const userRoutes = require("./routes/userRoutes");
 const announcementRoutes = require("./routes/announcementRoutes");
 const { seedDatabase } = require("./seed");
+const { scheduleCronJobs } = require("./cronJobs");
 const app = express();
 app.use(express.json());
 app.use(cors({
@@ -26,6 +27,8 @@ const middle=(req,res,next)=>{
 //seedDatabase();
 connectDB();
 
+// Initialize cron jobs
+scheduleCronJobs();
 
 // ✅ Use API Routes
 //app.use(middle)
